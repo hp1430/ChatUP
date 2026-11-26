@@ -1,6 +1,7 @@
 from __future__ import annotations
+from typing import Annotated
 
-from fastapi import Header, HTTPException
+from fastapi import Depends, Header, HTTPException
 
 def require_user_id(
         x_user_id: str | None = Header(None, alias="X-User-Id"),
@@ -20,3 +21,5 @@ def require_user_id(
 
 def shutdown_runtime() -> None:
     return None
+
+UserIdDep = Annotated[str, Depends(require_user_id)]
