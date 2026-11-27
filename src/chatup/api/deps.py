@@ -24,8 +24,15 @@ def require_user_id(
     return user_id
 
 @lru_cache
-def get_db_pool() -> AsyncConnectionPool:
+def _get_cached_pool() -> AsyncConnectionPool:
     return create_pool()
+
+
+async def get_db_pool() -> AsyncConnectionPool:
+    pool = _get_cached_pool()
+    if pool._closed:
+        await pool.open()
+    return pool
 
 
 def shutdown_runtime() -> None:

@@ -12,5 +12,5 @@ def create_pool(settings: Settings | None = None) -> AsyncConnectionPool:
         conninfo=cfg.database_url,
         min_size=cfg.postgres_pool_min_size,
         max_size=cfg.postgres_pool_max_size,
-        open=cfg.postgres_pool_open,
+        open=False,
     )
