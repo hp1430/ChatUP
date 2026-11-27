@@ -1,7 +1,11 @@
 from __future__ import annotations
+from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException
+from psycopg_pool import AsyncConnectionPool
+
+from chatup.repositories import create_pool
 
 def require_user_id(
         x_user_id: str | None = Header(None, alias="X-User-Id"),
@@ -19,7 +23,13 @@ def require_user_id(
         )
     return user_id
 
+@lru_cache
+def get_db_pool() -> AsyncConnectionPool:
+    return create_pool()
+
+
 def shutdown_runtime() -> None:
     return None
 
 UserIdDep = Annotated[str, Depends(require_user_id)]
+PoolDep = Annotated[AsyncConnectionPool, Depends(get_db_pool)]
