@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from chatup.api.deps import PoolDep, UserIdDep
+from chatup.api.deps import AppRuntimeDep, PoolDep, UserIdDep
 from chatup.schemas.api import ChatRequest, ChatResponse, MessageResponse
 from chatup.services.chat import chat_once
 
@@ -22,10 +22,12 @@ async def send_message(
     body: ChatRequest,
     user_id: UserIdDep,
     pool: PoolDep,
+    runtime: AppRuntimeDep,
 ) -> ChatResponse:
     try:
         result = await chat_once(
             pool=pool,
+            runtime=runtime,
             thread_id=thread_id,
             user_id=user_id,
             message=body.message.strip(),
