@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
+import os
 
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables import RunnableConfig
@@ -17,6 +19,7 @@ class AppRuntime:
     settings: Settings
     checkpointer: PostgresSaver
     agent: CompiledStateGraph
+    checkpointer_cm: AbstractContextManager[PostgresSaver]
 
     def chat(self, user_id: str, thread_id: str, user_message: str) -> tuple[str, list[BaseMessage]]:
         config = self._chat_config(user_id, thread_id)
@@ -39,6 +42,8 @@ class AppRuntime:
 
 
 def create_app_runtime(settings: Settings) -> AppRuntime:
+    if settings.openai_api_key:
+        os.environ.setdefault("OPENAI_API_KEY", settings.openai_api_key)
     checkpointer_cm = PostgresSaver.from_conn_string(settings.database_url)
     checkpointer = checkpointer_cm.__enter__()
     checkpointer.setup()
@@ -47,4 +52,5 @@ def create_app_runtime(settings: Settings) -> AppRuntime:
         settings=settings,
         checkpointer=checkpointer,
         agent=agent,
+        checkpointer_cm=checkpointer_cm,
     )
