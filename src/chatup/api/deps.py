@@ -5,7 +5,14 @@ from typing import Annotated
 from fastapi import Depends, Header, HTTPException
 from psycopg_pool import AsyncConnectionPool
 
+from chatup.agents.runtime import AppRuntime, create_app_runtime
+from chatup.config import get_settings
 from chatup.repositories import create_pool
+
+
+@lru_cache
+def get_app_runtime() -> AppRuntime:
+    return create_app_runtime(get_settings())
 
 def require_user_id(
         x_user_id: str | None = Header(None, alias="X-User-Id"),
@@ -40,3 +47,4 @@ def shutdown_runtime() -> None:
 
 UserIdDep = Annotated[str, Depends(require_user_id)]
 PoolDep = Annotated[AsyncConnectionPool, Depends(get_db_pool)]
+AppRuntimeDep = Annotated[AppRuntime, Depends(get_app_runtime)]
