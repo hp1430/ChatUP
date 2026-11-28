@@ -96,3 +96,22 @@ async def touch_thread(
                 (thread_id,),
             )
             return await cur.fetchone()
+
+
+async def thread_belongs_to_user(
+    pool: AsyncConnectionPool,
+    thread_id: str,
+    user_id: str,
+) -> bool:
+    """Return True if the given thread_id belongs to user_id, otherwise False."""
+    async with pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT 1
+                FROM chatup_threads
+                WHERE thread_id = %s AND user_id = %s
+                """,
+                (thread_id, user_id),
+            )
+            return (await cur.fetchone()) is not None

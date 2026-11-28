@@ -67,6 +67,7 @@ async def update_thread(
     thread = await rename_thread(
         pool=pool,
         thread_id=thread_id,
+        user_id=user_id,
         title=body.title.strip(),
     )
     if thread is None:
