@@ -3,17 +3,32 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from chatup.api.deps import AppRuntimeDep, PoolDep, UserIdDep
-from chatup.schemas.api import ChatRequest, ChatResponse, MessageResponse
-from chatup.services.chat import chat_once
+from chatup.schemas.api import ChatRequest, ChatResponse, MessageItem, MessageResponse
+from chatup.services.chat import chat_once, get_thread_messages
 
 router = APIRouter(prefix="/api/threads", tags=["chat"])
 
 @router.get("/{thread_id}/messages", response_model=MessageResponse)
-def list_thread_messages(
+async def list_thread_messages(
     thread_id: str,
-    _user_id: UserIdDep,
+    user_id: UserIdDep,
+    pool: PoolDep,
+    runtime: AppRuntimeDep,
 ) -> MessageResponse:
-    return MessageResponse(thread_id=thread_id, messages=[])
+    try:
+        messages = await get_thread_messages(
+            pool=pool,
+            runtime=runtime,
+            thread_id=thread_id,
+            user_id=user_id,
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+    return MessageResponse(
+        thread_id=thread_id,
+        messages=[MessageItem.model_validate(m) for m in messages],
+    )
 
 
 @router.post("/{thread_id}/chat", response_model=ChatResponse)

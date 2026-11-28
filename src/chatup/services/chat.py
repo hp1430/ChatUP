@@ -23,3 +23,16 @@ async def chat_once(
     )
     await touch_thread(pool, thread_id=thread_id)
     return {"reply": reply, "thread_id": thread_id}
+
+
+async def get_thread_messages(
+    pool: AsyncConnectionPool,
+    runtime: AppRuntime,
+    thread_id: str,
+    user_id: str,
+) -> list[dict[str, str]]:
+    """Return the serialized chat history for a thread if it belongs to user_id."""
+    if not await verify_thread_ownership(pool, thread_id=thread_id, user_id=user_id):
+        raise PermissionError("Thread does not belong to user")
+
+    return runtime.get_chat_history(user_id=user_id, thread_id=thread_id)
